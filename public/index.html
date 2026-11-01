@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Valorant · progreso competitivo</title>
+    <link rel="stylesheet" href="./overlay.css" />
+  </head>
+  <body>
+    <main class="overlay" id="overlay" data-state="loading">
+      <section class="rank">
+        <img class="rank-icon" id="rank-icon" alt="" width="48" height="48" hidden />
+        <div class="rank-text">
+          <span class="rank-tier" id="rank-tier">Cargando…</span>
+          <span class="rank-caption">Competitivo</span>
+        </div>
+      </section>
+
+      <section class="counters" aria-label="Victorias, derrotas y empates">
+        <div class="counter counter--win">
+          <span class="counter-value" id="wins">0</span>
+          <span class="counter-label">W</span>
+        </div>
+        <div class="counter counter--loss">
+          <span class="counter-value" id="losses">0</span>
+          <span class="counter-label">L</span>
+        </div>
+        <div class="counter counter--draw">
+          <span class="counter-value" id="draws">0</span>
+          <span class="counter-label">D</span>
+        </div>
+      </section>
+
+      <span class="status" id="status" aria-hidden="true"></span>
+    </main>
+
+    <script src="./overlay.js"></script>
+  </body>
+</html>

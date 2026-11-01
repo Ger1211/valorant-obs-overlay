@@ -1,0 +1,28 @@
+{
+  "name": "valorant-obs-overlay",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Overlay para OBS con el rango competitivo y el acumulado W/L/D de una cuenta de Valorant (tracker.gg)",
+  "engines": {
+    "node": ">=20.12"
+  },
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "tsx --test tests/ingest.test.ts tests/overlay.test.ts tests/scheduler.test.ts tests/public-surface.test.ts",
+    "fetch-ranks": "node scripts/fetch-ranks.mjs",
+    "tunnel": "cloudflared tunnel --url http://127.0.0.1:4001"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.10.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}

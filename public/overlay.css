@@ -1,0 +1,145 @@
+:root {
+  --win: #4ade80;
+  --loss: #f87171;
+  --draw: #a1a1aa;
+  --text: #f4f4f5;
+  --muted: #9ca3af;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  /* Transparente: OBS compone el navegador sobre la escena. */
+  background: transparent;
+}
+
+body {
+  display: grid;
+  place-items: center;
+  /* Un poco de aire para que el borde nunca quede cortado en el source de OBS. */
+  padding: 8px;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+.overlay {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 16px 10px 12px;
+  min-width: 300px;
+  max-width: 100%;
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(24, 26, 33, 0.82), rgba(11, 12, 16, 0.88));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 10px 28px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(10px);
+}
+
+.rank {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.rank-icon {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5));
+}
+
+.rank-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+  min-width: 0;
+}
+
+.rank-tier {
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rank-caption {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.counters {
+  display: flex;
+  align-items: stretch;
+  gap: 2px;
+  margin-left: auto;
+  padding-left: 14px;
+  border-left: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+.counter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 42px;
+  gap: 1px;
+}
+
+.counter-value {
+  font-size: 22px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.counter-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+}
+
+.counter--win .counter-value {
+  color: var(--win);
+}
+
+.counter--loss .counter-value {
+  color: var(--loss);
+}
+
+.counter--draw .counter-value {
+  color: var(--draw);
+}
+
+.status {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #f59e0b;
+  opacity: 0;
+  transition: opacity 160ms ease;
+}
+
+.overlay[data-state='error'] .status {
+  opacity: 0.9;
+}
