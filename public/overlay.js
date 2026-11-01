@@ -3,7 +3,11 @@
 (() => {
   const REFRESH_MS = 10_000;
   const params = new URLSearchParams(location.search);
-  const apiBase = (params.get('api') || location.origin).replace(/\/+$/, '');
+
+  // Prioridad: ?api= de la URL > <meta name="overlay-api"> > mismo origen.
+  const metaApi = document.querySelector('meta[name="overlay-api"]');
+  const configuredApi = metaApi && metaApi.getAttribute('content');
+  const apiBase = (params.get('api') || configuredApi || location.origin).replace(/\/+$/, '');
 
   const el = {
     overlay: document.getElementById('overlay'),
