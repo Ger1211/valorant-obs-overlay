@@ -16,10 +16,13 @@
  * Todo el overlay está en `em` y la base sale del tamaño del source de OBS.
  * Ventaja: si el source se agranda (o se estira), el navegador re-renderiza el
  * texto a esa resolución en vez de escalar un bitmap, así no se pixela.
- * Con 460x140 el cuerpo queda en ~10px; con 1380x420, en ~30px.
+ * Con 460x140 el cuerpo queda en ~11px; con 1380x420, en ~34px.
+ *
+ * `--fit` lo ajusta overlay.js cuando el contenido (nombre de rango largo o
+ * contadores de 3 cifras) no entra en el ancho del source.
  */
 html {
-  font-size: min(2.5vw, 10vh);
+  font-size: calc(min(2.5vw, 10vh) * var(--fit, 1));
 }
 
 html,
@@ -32,6 +35,9 @@ body {
 
 body {
   display: grid;
+  /* minmax(0,1fr) evita que la tarjeta estire la grilla y se escape a la
+     derecha: queda centrada dentro del padding, simétrica. */
+  grid-template-columns: minmax(0, 1fr);
   place-items: center;
   padding: 1.2em;
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
@@ -46,7 +52,7 @@ body {
   display: flex;
   align-items: center;
   gap: 1.1em;
-  width: auto;
+  width: max-content;
   max-width: 100%;
   padding: 0.9em 1.7em 0.9em 1.2em;
   border-radius: 1.2em;

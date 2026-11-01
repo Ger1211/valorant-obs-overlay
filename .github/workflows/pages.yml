@@ -23,6 +23,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Versionar el build (para que OBS tome los cambios solo)
+        run: sed -i "s/__BUILD__/${GITHUB_SHA::7}/" public/index.html
+
       - uses: actions/configure-pages@v5
 
       - uses: actions/upload-pages-artifact@v3

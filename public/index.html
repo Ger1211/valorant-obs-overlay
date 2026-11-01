@@ -3,8 +3,9 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- El workflow de Pages reemplaza __BUILD__ por el sha del commit. -->
+    <meta name="build" content="__BUILD__" />
     <title>Valorant · competitive progress</title>
-    <link rel="stylesheet" href="./overlay.css" />
   </head>
   <body>
     <main class="overlay" id="overlay" data-state="loading">
@@ -34,6 +35,28 @@
       <span class="status" id="status" aria-hidden="true"></span>
     </main>
 
-    <script src="./overlay.js"></script>
+    <script>
+      // Cache-busting por carga: GitHub Pages cachea 10 minutos (y CEF/OBS más),
+      // así que CSS y JS se piden con ?v=<timestamp> y el diseño nuevo aparece
+      // sin tener que limpiar el cache de la fuente a mano.
+      // El JS se inyecta recién cuando el CSS terminó de cargar: overlay.js mide
+      // el ancho de la tarjeta y con estilos a medio aplicar mediría mal.
+      (() => {
+        const version = Date.now();
+
+        const loadScript = () => {
+          const js = document.createElement('script');
+          js.src = `./overlay.js?v=${version}`;
+          document.body.appendChild(js);
+        };
+
+        const css = document.createElement('link');
+        css.rel = 'stylesheet';
+        css.href = `./overlay.css?v=${version}`;
+        css.addEventListener('load', loadScript);
+        css.addEventListener('error', loadScript);
+        document.head.appendChild(css);
+      })();
+    </script>
   </body>
 </html>

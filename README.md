@@ -104,6 +104,8 @@ No sirve abrir el HTML como **archivo local** (`file://`): el navegador de OBS b
 2. Settings → Pages → Source: **GitHub Actions**. El workflow `.github/workflows/pages.yml` publica `public/` en cada push a `main`.
 3. La página queda en `https://<usuario>.github.io/<repo>/`.
 
+La página **se actualiza sola**: carga el CSS/JS con un `?v=<timestamp>` (PageS cachea 10 minutos) y compara el `<meta name="build">` que inyecta el workflow cada 60 segundos; si hay un deploy nuevo, se recarga. Se puede desactivar con `?noreload=1`.
+
 **Datos en vivo con Cloudflare Tunnel** (desde tu PC):
 
 ```bash

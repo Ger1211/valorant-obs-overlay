@@ -73,6 +73,27 @@
     if (node.textContent !== text) node.textContent = text;
   }
 
+  /**
+   * Ajusta el tamaño a lo ancho del source. Si el nombre del rango o algún
+   * contador no entra (rango "Ascendant 3", 3 cifras, source angosto), baja
+   * `--fit` hasta que entra en vez de recortar con puntos suspensivos.
+   */
+  function fitCard() {
+    const root = document.documentElement;
+    root.style.setProperty('--fit', '1');
+
+    const isClipped = () =>
+      el.overlay.scrollWidth > el.overlay.clientWidth + 1 ||
+      el.tier.scrollWidth > el.tier.clientWidth + 1 ||
+      [el.wins, el.losses, el.draws].some((node) => node.scrollWidth > node.clientWidth + 1);
+
+    let scale = 1;
+    while (scale > 0.6 && isClipped()) {
+      scale = Math.round((scale - 0.02) * 100) / 100;
+      root.style.setProperty('--fit', String(scale));
+    }
+  }
+
   function apply(info) {
     setNumber(el.wins, info.wins);
     setNumber(el.losses, info.losses);
@@ -99,6 +120,8 @@
     el.status.title = info.lastMatchAt
       ? `Last match: ${new Date(info.lastMatchAt).toLocaleString('en-US')}`
       : 'No matches recorded yet';
+
+    fitCard();
   }
 
   /** La pantalla no puede quedarse mintiendo con "Loading…" cuando falla. */
@@ -141,10 +164,41 @@
   el.icon.addEventListener('error', () => {
     el.icon.hidden = true;
     appliedIcon = null;
+    fitCard();
   });
+
+  // Si OBS cambia el tamaño del source, se recalcula el ajuste.
+  window.addEventListener('resize', fitCard);
+
+  // Detecta un deploy nuevo y se recarga sola: así OBS toma los cambios sin
+  // que haya que tocar la fuente (el workflow de Pages pone el sha en <meta>).
+  async function watchDeploys() {
+    const params = new URLSearchParams(location.search);
+    const meta = document.querySelector('meta[name="build"]');
+    const current = meta ? meta.getAttribute('content') : '';
+
+    if (!current || current === '__BUILD__' || params.has('noreload')) return;
+
+    try {
+      const response = await fetch(`./index.html?probe=${Date.now()}`, { cache: 'no-store' });
+      if (response.ok) {
+        const html = await response.text();
+        const match = html.match(/name="build" content="([^"]+)"/);
+        if (match && match[1] !== current) {
+          location.reload();
+          return;
+        }
+      }
+    } catch {
+      // sin red: se reintenta en el próximo ciclo
+    }
+
+    setTimeout(watchDeploys, 60_000);
+  }
 
   resolveCandidates().then((candidates) => {
     apiBase = candidates[0] || strip(location.origin);
+    void watchDeploys();
     return refresh(candidates);
   });
 })();
