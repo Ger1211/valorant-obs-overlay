@@ -1,13 +1,25 @@
-// Pagina del overlay. No dispara ingestas: solo lee lo que el server ya trajo.
-// Base de la API: ?api=https://<tunel> o el mismo origen (OBS en localhost).
+// Página del overlay. No dispara ingestas: solo lee lo que el server ya trajo.
+//
+// Fuente de datos, en orden de preferencia:
+//   1. ?api=<url> (override manual, para probar)
+//   2. public/config.js (window.OVERLAY_CONFIG.api) — lo que usa GitHub Pages
+//   3. mismo origen — lo que usa OBS apuntando a http://127.0.0.1:4001/
 (() => {
   const REFRESH_MS = 10_000;
   const params = new URLSearchParams(location.search);
+  const configured = params.get('api') || (window.OVERLAY_CONFIG && window.OVERLAY_CONFIG.api) || '';
 
-  // Prioridad: ?api= de la URL > <meta name="overlay-api"> > mismo origen.
-  const metaApi = document.querySelector('meta[name="overlay-api"]');
-  const configuredApi = metaApi && metaApi.getAttribute('content');
-  const apiBase = (params.get('api') || configuredApi || location.origin).replace(/\/+$/, '');
+  const strip = (value) => String(value || '').replace(/\/+$/, '');
+  const isLocalPage = ['127.0.0.1', 'localhost', ''].includes(location.hostname);
+
+  // En OBS (localhost) conviene el server local; en Pages, el túnel.
+  const preferred = [isLocalPage ? strip(location.origin) : strip(configured)];
+  const candidates = [];
+  for (const url of [strip(configured), strip(location.origin), ...preferred]) {
+    if (url && !candidates.includes(url)) candidates.push(url);
+  }
+
+  let apiBase = candidates[0] || strip(location.origin);
 
   const el = {
     overlay: document.getElementById('overlay'),
@@ -35,8 +47,8 @@
 
     if (info.rankIcon) {
       if (appliedIcon !== info.rankIcon) {
-        // El icono lo sirve la API, no la pagina: en GitHub Pages el sitio vive
-        // bajo /<repo>/ y una ruta absoluta /ranks/... daria 404.
+        // El icono lo sirve la API: en GitHub Pages el sitio vive bajo /<repo>/
+        // y una ruta absoluta /ranks/... daría 404.
         el.icon.src = new URL(info.rankIcon, `${apiBase}/`).href;
         el.icon.alt = info.rankName || '';
         el.icon.hidden = false;
@@ -59,11 +71,27 @@
     el.status.title = `API unreachable: ${message}`;
   }
 
+  async function fetchOverlay() {
+    let lastError = new Error('sin API configurada');
+
+    for (const base of [apiBase, ...candidates.filter((url) => url !== apiBase)]) {
+      try {
+        const response = await fetch(`${base}/api/overlay`, { cache: 'no-store' });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const info = await response.json();
+        apiBase = base;
+        return info;
+      } catch (error) {
+        lastError = error;
+      }
+    }
+
+    throw lastError;
+  }
+
   async function refresh() {
     try {
-      const response = await fetch(`${apiBase}/api/overlay`, { cache: 'no-store' });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      apply(await response.json());
+      apply(await fetchOverlay());
     } catch (error) {
       markError(error && error.message ? error.message : String(error));
     } finally {

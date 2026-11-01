@@ -5,7 +5,7 @@ Overlay compacto para OBS (fuente **navegador**) con el **rango competitivo actu
 Pensado para mostrar el progreso en stream sin ocupar la pantalla: una tarjeta de ~300×88 px con fondo transparente.
 
 - **Repo**: <https://github.com/Ger1211/valorant-obs-overlay>
-- **Página pública**: <https://ger1211.github.io/valorant-obs-overlay/> (necesita `?api=<url-del-túnel>` para ver datos en vivo)
+- **Página pública**: <https://ger1211.github.io/valorant-obs-overlay/>
 
 
 ```
@@ -84,11 +84,17 @@ winget install --id Cloudflare.cloudflared     # una vez
 npm run tunnel                                  # cloudflared tunnel --url http://127.0.0.1:4001
 ```
 
-Cloudflared imprime una URL `https://algo-random.trycloudflare.com`. Abrí:
+Cloudflared imprime una URL `https://algo-random.trycloudflare.com`. Pegala en `public/config.js`:
 
+```js
+window.OVERLAY_CONFIG = {
+  api: 'https://algo-random.trycloudflare.com',
+};
 ```
-https://<usuario>.github.io/<repo>/?api=https://algo-random.trycloudflare.com
-```
+
+y hacé push: Pages republica la página y el link queda limpio, **sin `?api=` en la URL**. El localizador es un archivo de configuración normal del proyecto, así que si el túnel cambia se edita esa línea y listo.
+
+El `?api=` sigue existiendo como override manual para probar (`...?api=http://127.0.0.1:4001`), pero no hace falta para compartir.
 
 Con un dominio propio se puede usar un **túnel nombrado** (`cloudflared tunnel create` + `route dns`) para tener URL fija en vez de una que cambia en cada reinicio.
 
