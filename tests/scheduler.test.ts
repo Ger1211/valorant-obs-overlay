@@ -68,16 +68,16 @@ test('ante un bloqueo de tracker el siguiente intento se aleja', async () => {
   await scheduler.tick();
   assert.equal(runs, 1);
   assert.equal(scheduler.status().failureStreak, 1);
-  assert.equal(scheduler.status().nextRunAt, clock.now + 60_000);
+  assert.equal(scheduler.status().nextRunAt, clock.now + 120_000);
   assert.match(String(scheduler.status().lastError), /TRACKER_BLOCKED/);
 
   clock.now += 20_000;
   assert.equal(await scheduler.tick(), 'skipped-not-due', 'no reintenta a los 20 s');
 
-  clock.now += 40_000;
+  clock.now += 100_000;
   assert.equal(await scheduler.tick(), 'ran');
   assert.equal(scheduler.status().failureStreak, 2);
-  assert.equal(scheduler.status().nextRunAt, clock.now + 300_000, 'segundo fallo: 5 minutos');
+  assert.equal(scheduler.status().nextRunAt, clock.now + 600_000, 'segundo fallo: 10 minutos');
 });
 
 test('un ciclo exitoso limpia el backoff', async () => {
@@ -92,7 +92,7 @@ test('un ciclo exitoso limpia el backoff', async () => {
   assert.equal(scheduler.status().failureStreak, 1);
 
   shouldFail = false;
-  clock.now += 60_000;
+  clock.now += 120_000;
   await scheduler.tick();
 
   assert.equal(scheduler.status().failureStreak, 0);

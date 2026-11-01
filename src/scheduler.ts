@@ -1,7 +1,11 @@
 import { TrackerBlockedError } from './tracker/client.js';
 
-/** Espera tras cada fallo consecutivo (el intervalo normal es el primer valor). */
-export const BLOCKED_DELAYS_MS = [60_000, 300_000] as const;
+/**
+ * Espera tras cada fallo consecutivo. tracker.gg responde 429 cuando se le pega
+ * seguido (visto con el ciclo de 20 s), asi que el enfriamiento arranca en 2 min
+ * y sube a 10 min antes de volver al intervalo normal.
+ */
+export const BLOCKED_DELAYS_MS = [120_000, 600_000] as const;
 
 export interface SchedulerOptions {
   /** Intervalo normal entre ciclos. 0 desactiva el scheduler. */

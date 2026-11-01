@@ -10,10 +10,12 @@ Pensado para mostrar el progreso en stream sin ocupar la pantalla: una tarjeta d
 
 ```
 ┌──────────────────────────────┐
-│  [icono]  Platinum 3   3 W  2 L  1 D │
-│           COMPETITIVO                │
+│  [icono]  Diamante 3   11 V  4 D  1 E │
+│           RANGO                      │
 └──────────────────────────────┘
 ```
+
+Los contadores son **V**ictorias, **D**errotas y **E**mpates.
 
 ## Qué cuenta
 
@@ -61,7 +63,7 @@ La primera ingesta puede tardar; el server la corre solo cada 20 segundos (`AUTO
 
 1. En la escena: **Fuentes → `+` → Navegador**.
 2. **URL**: `http://127.0.0.1:4001/`
-3. **Ancho** `400`, **Alto** `120` (la tarjeta queda centrada y el resto es transparente).
+3. **Ancho** `920`, **Alto** `280` (el doble del tamaño visual; la tarjeta ocupa el centro y el resto es transparente). Se puede poner cualquier tamaño: el overlay escala solo y el texto se re-renderiza a esa resolución, así que agrandarlo en la escena no lo pixela. Mínimo recomendado: **460 × 140**.
 4. **Apagar fuente cuando no esté visible**: desactivado.
 5. **Actualizar el navegador cuando la escena se active**: desactivado (la página se refresca sola cada 10 s).
 
@@ -144,7 +146,7 @@ tracker.gg ──(curl TLS)──► src/tracker/client.ts
 
 - El **scheduler** (`src/scheduler.ts`) corre la ingesta cada 20 s por defecto, dentro del proceso del server. Vive ahí y no en la página porque OBS puede suspender el Browser Source; si el timer estuviera en el navegador, el contador se congelaría.
 - Cada ciclo pide **una sola página** y corta en la primera partida ya guardada, así el costo es 1 request cada 20 s en vez de paginar el historial completo.
-- Ante `403/429/503` aplica backoff (60 s, luego 300 s) en lugar de insistir.
+- Ante `403/429/503` aplica backoff (2 min y luego 10 min) en lugar de insistir: tracker.gg responde `429` cuando se le pega seguido, comprobado con el ciclo de 20 s.
 - Los íconos salen de `public/ranks/<tier>.png` (26 archivos). Se regeneran con `npm run fetch-ranks`, que mapea por **nombre** de tier porque la API pública numera 3..27 y este proyecto normaliza 1..25.
 
 ## Tests y verificación

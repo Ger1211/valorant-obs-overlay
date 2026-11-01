@@ -82,7 +82,7 @@ test('buildOverlayInfo arma el payload que consume el overlay', () => {
   );
 
   assert.equal(info.rankTier, 15);
-  assert.equal(info.rankName, 'Platinum 3');
+  assert.equal(info.rankName, 'Platino 3');
   assert.equal(info.rankIcon, '/ranks/15.png');
   assert.equal(info.wins, 1);
   assert.equal(info.draws, 1);
