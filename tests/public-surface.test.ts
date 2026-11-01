@@ -86,6 +86,23 @@ test('la pagina del overlay se sirve en la raiz', async () => {
   });
 });
 
+test('el codigo se sirve sin cache y los iconos se cachean', async () => {
+  await withServer(publicApp(), async (base) => {
+    const js = await fetch(`${base}/overlay.js`);
+    assert.equal(js.status, 200);
+    assert.match(js.headers.get('cache-control') ?? '', /no-store/);
+
+    const config = await fetch(`${base}/config.json`);
+    assert.equal(config.status, 200);
+    assert.match(config.headers.get('cache-control') ?? '', /no-store/);
+    assert.equal(typeof (await config.json()).api, 'string');
+
+    const icon = await fetch(`${base}/ranks/0.png`);
+    assert.equal(icon.status, 200);
+    assert.match(icon.headers.get('cache-control') ?? '', /max-age/);
+  });
+});
+
 test('health no filtra detalles del error de ingesta', async () => {
   await withServer(publicApp(), async (base) => {
     const body = (await (await fetch(`${base}/api/health`)).json()) as Record<string, unknown>;

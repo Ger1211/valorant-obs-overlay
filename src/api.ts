@@ -72,7 +72,19 @@ export function createPublicApp(options: PublicAppOptions): Express {
     res.json({ ok: true, ...(options.health?.() ?? {}) });
   });
 
-  app.use(express.static(options.publicDir, { dotfiles: 'deny', index: 'index.html', extensions: false }));
+  app.use(
+    express.static(options.publicDir, {
+      dotfiles: 'deny',
+      index: 'index.html',
+      extensions: false,
+      setHeaders: (res, filePath) => {
+        // Código y configuración nunca cacheados: OBS/CEF se queda con el JS
+        // viejo y hay que refrescar el cache a mano. Los PNG sí se cachean.
+        if (/\.(html|js|css|json)$/i.test(filePath)) res.setHeader('Cache-Control', 'no-store');
+        else res.setHeader('Cache-Control', 'public, max-age=86400');
+      },
+    }),
+  );
 
   app.use((_req: Request, res: Response) => {
     res.status(404).json({ error: 'NOT_FOUND' });

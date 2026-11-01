@@ -58,7 +58,7 @@ Para que arranque solo al prender la PC:
 1. Docker Desktop → **Settings → General → "Start Docker Desktop when you sign in"**.
 2. Plan de energía sin suspensión: si Windows duerme, el contenedor no scrapea y los datos se congelan.
 
-Después de un `docker compose up` nuevo el quick tunnel cambia de URL: actualizá `public/config.js` y hacé push (OBS no se entera, usa `localhost`).
+Después de un `docker compose up` nuevo el quick tunnel cambia de URL: actualizá `public/config.json` y hacé push (OBS no se entera, usa `localhost`).
 
 ## Levantarlo sin Docker (desarrollo)
 
@@ -111,12 +111,12 @@ winget install --id Cloudflare.cloudflared     # una vez
 npm run tunnel                                  # cloudflared tunnel --url http://127.0.0.1:4001
 ```
 
-Cloudflared imprime una URL `https://algo-random.trycloudflare.com`. Pegala en `public/config.js`:
+Cloudflared imprime una URL `https://algo-random.trycloudflare.com`. Pegala en `public/config.json`:
 
-```js
-window.OVERLAY_CONFIG = {
-  api: 'https://algo-random.trycloudflare.com',
-};
+```json
+{
+  "api": "https://algo-random.trycloudflare.com"
+}
 ```
 
 y hacé push: Pages republica la página y el link queda limpio, **sin `?api=` en la URL**. El localizador es un archivo de configuración normal del proyecto, así que si el túnel cambia se edita esa línea y listo.
