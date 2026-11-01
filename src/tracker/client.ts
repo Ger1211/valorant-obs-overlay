@@ -14,7 +14,6 @@ import type { TrackerMatchesResponse, TrackerProfileResponse } from './types.js'
 const execFileP = promisify(execFile);
 
 const BASE = 'https://api.tracker.gg/api/v2/valorant/standard';
-
 // Cloudflare no solo mira el TLS: con pocos headers devuelve 403 aunque el
 // fingerprint sea de navegador. Este set es el que manda un XHR real a tracker.gg.
 const REQUEST_HEADERS: Record<string, string> = {
@@ -57,6 +56,29 @@ function defaultCurlBin(): string {
   if (override) return override;
   if (process.platform === 'win32') return 'curl.exe';
   return 'curl_chrome136';
+}
+
+/**
+ * URL de partidas competitivas.
+ *
+ * `forceCollect=true` NO es opcional: sin ese parametro tracker.gg devuelve una
+ * copia cacheada y las partidas nuevas no aparecen (comprobado: 5 vs 6 partidas
+ * para la misma cuenta). El endpoint de perfil usa el mismo truco.
+ */
+export function matchesUrl(
+  base: string,
+  riotId: string,
+  riotTag: string,
+  next?: string,
+): string {
+  const user = `${encodeURIComponent(riotId)}%23${encodeURIComponent(riotTag)}`;
+  const params = new URLSearchParams({
+    playlist: 'competitive',
+    type: 'competitive',
+    forceCollect: 'true',
+  });
+  if (next) params.set('next', next);
+  return `${base}/matches/riot/${user}?${params.toString()}`;
 }
 
 export class TrackerClient {
@@ -138,8 +160,6 @@ export class TrackerClient {
     riotTag: string,
     next?: string,
   ): Promise<TrackerMatchesResponse> {
-    let url = `${BASE}/matches/riot/${this.userPath(riotId, riotTag)}?playlist=competitive&type=competitive`;
-    if (next) url += `&next=${encodeURIComponent(next)}`;
-    return this.get<TrackerMatchesResponse>(url);
+    return this.get<TrackerMatchesResponse>(matchesUrl(BASE, riotId, riotTag, next));
   }
 }

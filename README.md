@@ -145,6 +145,7 @@ tracker.gg ──(curl TLS)──► src/tracker/client.ts
 ```
 
 - El **scheduler** (`src/scheduler.ts`) corre la ingesta cada 20 s por defecto, dentro del proceso del server. Vive ahí y no en la página porque OBS puede suspender el Browser Source; si el timer estuviera en el navegador, el contador se congelaría.
+- tracker.gg **cachea** el endpoint de partidas: sin `forceCollect=true` devuelve la copia vieja y las partidas nuevas no aparecen (comprobado: 5 vs 6 partidas para la misma cuenta en el mismo minuto). `matchesUrl()` en `src/tracker/client.ts` siempre lo manda.
 - tracker.gg devuelve **~5 partidas por página** y exige pedir el cursor `next`. El modo incremental avanza página por página **mientras vengan todas nuevas** y corta en la primera partida ya guardada: en el caso normal cuesta 1 request por ciclo, y si entre dos ciclos entró más de una página de partidas no quedan huecos. El modo completo (`?force=1`) recorre todo el historial (tope de seguridad: 50 páginas).
 - Ante `403/429/503` aplica backoff (2 min y luego 10 min) en lugar de insistir: tracker.gg responde `429` cuando se le pega seguido, comprobado con el ciclo de 20 s.
 - Los íconos salen de `public/ranks/<tier>.png` (26 archivos). Se regeneran con `npm run fetch-ranks`, que mapea por **nombre** de tier porque la API pública numera 3..27 y este proyecto normaliza 1..25.

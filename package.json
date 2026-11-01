@@ -12,7 +12,7 @@
     "start": "node dist/index.js",
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "tsx --test tests/ingest.test.ts tests/overlay.test.ts tests/scheduler.test.ts tests/public-surface.test.ts",
+    "test": "tsx --test tests/ingest.test.ts tests/overlay.test.ts tests/scheduler.test.ts tests/public-surface.test.ts tests/tracker-url.test.ts",
     "fetch-ranks": "node scripts/fetch-ranks.mjs",
     "tunnel": "cloudflared tunnel --url http://127.0.0.1:4001"
   },
