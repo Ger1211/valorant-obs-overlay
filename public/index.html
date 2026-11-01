@@ -1,11 +1,11 @@
 <!doctype html>
-<html lang="es">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <!-- URL de la API por defecto cuando no viene ?api= (ej. tu tunel nombrado). -->
+    <!-- Default API URL when ?api= is missing (e.g. your named tunnel). -->
     <meta name="overlay-api" content="" />
-    <title>Valorant · progreso competitivo</title>
+    <title>Valorant · competitive progress</title>
     <link rel="stylesheet" href="./overlay.css" />
   </head>
   <body>
@@ -13,23 +13,23 @@
       <section class="rank">
         <img class="rank-icon" id="rank-icon" alt="" hidden />
         <div class="rank-text">
-          <span class="rank-tier" id="rank-tier">Cargando…</span>
-          <span class="rank-caption">Rango</span>
+          <span class="rank-tier" id="rank-tier">Loading…</span>
+          <span class="rank-caption">Rank</span>
         </div>
       </section>
 
-      <section class="counters" aria-label="Victorias, derrotas y empates">
+      <section class="counters" aria-label="Wins, losses and draws">
         <div class="counter counter--win">
           <span class="counter-value" id="wins">0</span>
-          <span class="counter-label" title="Victorias">V</span>
+          <span class="counter-label" title="Wins">W</span>
         </div>
         <div class="counter counter--loss">
           <span class="counter-value" id="losses">0</span>
-          <span class="counter-label" title="Derrotas">D</span>
+          <span class="counter-label" title="Losses">L</span>
         </div>
         <div class="counter counter--draw">
           <span class="counter-value" id="draws">0</span>
-          <span class="counter-label" title="Empates">E</span>
+          <span class="counter-label" title="Draws">D</span>
         </div>
       </section>
 

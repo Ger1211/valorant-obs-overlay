@@ -49,12 +49,14 @@
     }
 
     el.overlay.dataset.state = 'ok';
-    el.status.title = info.lastMatchAt ? `Última partida: ${new Date(info.lastMatchAt).toLocaleString('es-AR')}` : 'Sin partidas registradas';
+    el.status.title = info.lastMatchAt
+      ? `Last match: ${new Date(info.lastMatchAt).toLocaleString('en-US')}`
+      : 'No matches recorded yet';
   }
 
   function markError(message) {
     el.overlay.dataset.state = 'error';
-    el.status.title = `Sin conexión con la API: ${message}`;
+    el.status.title = `API unreachable: ${message}`;
   }
 
   async function refresh() {

@@ -10,12 +10,12 @@ Pensado para mostrar el progreso en stream sin ocupar la pantalla: una tarjeta d
 
 ```
 ┌──────────────────────────────┐
-│  [icono]  Diamante 3   11 V  4 D  1 E │
-│           RANGO                      │
+│  [icon]  Diamond 3   11 W  4 L  1 D │
+│          RANK                       │
 └──────────────────────────────┘
 ```
 
-Los contadores son **V**ictorias, **D**errotas y **E**mpates.
+La UI del overlay está en inglés. Los contadores son **W**ins, **L**osses y **D**raws (empates).
 
 ## Qué cuenta
 
