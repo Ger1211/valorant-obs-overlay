@@ -155,8 +155,7 @@ test('ingest incremental corta en la primera partida ya guardada', async () => {
   assert.equal(client.calls, 1, 'una sola pagina por ciclo');
 });
 
-test('ingest full renormaliza una partida existente', async () => {
-  const store = tempStore();
+test('ingest full renormaliza una partida existente', async () => {  const store = tempStore();
   await ingest(
     {
       client: fakeClient([{ data: { matches: [rawMatch({ id: 'comp-1', result: 'Victory' })] } }]),
@@ -180,4 +179,101 @@ test('ingest full renormaliza una partida existente', async () => {
   assert.equal(result.added, 0);
   assert.equal(result.updated, 1);
   assert.equal(store.get('comp-1')?.result, 'draw');
+});
+
+function storedMatch(id: string, timestamp: string) {
+  return {
+    matchId: id,
+    gameStartTime: Date.parse(timestamp),
+    queue: 'competitive' as const,
+    mapName: 'Ascent',
+    agentName: 'Jett',
+    result: 'victory' as const,
+    roundsWon: 13,
+    roundsLost: 5,
+    rankTier: 18,
+    ingestedAt: 1,
+  };
+}
+
+test('ingest incremental sigue paginando si la pagina vino entera nueva', async () => {
+  const store = tempStore();
+  store.upsertMany([storedMatch('known-1', '2026-10-20T20:00:00.000Z')]);
+
+  // Pagina 1: 5 partidas nuevas (todas desconocidas) y hay mas historial.
+  // Pagina 2: la primera es la ya guardada -> corta ahi.
+  const client = fakeClient([
+    {
+      data: {
+        matches: [1, 2, 3, 4, 5].map((n) =>
+          rawMatch({ id: `n${n}`, result: 'Victory', timestamp: `2026-10-31T2${n}:00:00.000Z` }),
+        ),
+        metadata: { next: 'cursor-2' },
+      },
+    },
+    {
+      data: {
+        matches: [
+          rawMatch({ id: 'known-1', result: 'Victory', timestamp: '2026-10-20T20:00:00.000Z' }),
+          rawMatch({ id: 'vieja-1', result: 'Defeat', timestamp: '2026-10-19T20:00:00.000Z' }),
+        ],
+        metadata: { next: 'cursor-3' },
+      },
+    },
+  ]);
+
+  const result = await ingest({ client, store, riotId: 'LaLisa Hushoban', riotTag: 'KPOP' }, { mode: 'incremental' });
+
+  assert.equal(result.pages, 2, 'no se conforma con la primera pagina si vino llena de novedades');
+  assert.equal(result.added, 5);
+  assert.equal(result.stoppedAtKnown, true);
+  assert.equal(result.fetched, 6, 'corta en la conocida, no sigue leyendo la pagina 2');
+  assert.equal(store.list().length, 6);
+});
+
+test('ingest full recorre todo el historial hasta que no hay next', async () => {
+  const store = tempStore();
+  const page = (from: number, next?: string) => ({
+    data: {
+      matches: [from, from + 1].map((n) =>
+        rawMatch({ id: `p${from}-${n}`, result: 'Victory', timestamp: `2026-10-0${n}T20:00:00.000Z` }),
+      ),
+      metadata: next ? { next } : {},
+    },
+  });
+
+  const client = fakeClient([
+    page(1, 'c2'),
+    page(2, 'c3'),
+    page(3, 'c4'),
+    page(4, 'c5'),
+    page(5),
+  ]);
+
+  const result = await ingest({ client, store, riotId: 'LaLisa Hushoban', riotTag: 'KPOP' }, { mode: 'full' });
+
+  assert.equal(result.pages, 5);
+  assert.equal(result.added, 10);
+  assert.equal(result.stoppedAtKnown, false);
+  assert.equal(client.calls, 5);
+});
+
+test('ingest respeta el tope de paginas pedido', async () => {
+  const store = tempStore();
+  const page = (from: number, next: string) => ({
+    data: {
+      matches: [rawMatch({ id: `t${from}`, result: 'Victory', timestamp: `2026-10-0${from}T20:00:00.000Z` })],
+      metadata: { next },
+    },
+  });
+
+  const client = fakeClient([page(1, 'c2'), page(2, 'c3'), page(3, 'c4')]);
+
+  const result = await ingest(
+    { client, store, riotId: 'LaLisa Hushoban', riotTag: 'KPOP' },
+    { mode: 'incremental', maxPages: 2 },
+  );
+
+  assert.equal(result.pages, 2);
+  assert.equal(result.added, 2);
 });

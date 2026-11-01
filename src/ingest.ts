@@ -13,8 +13,13 @@ export interface IngestDeps {
 }
 
 export interface IngestOptions {
-  /** incremental: una pagina, corta en la primera partida ya guardada. full: renormaliza lo existente. */
+  /**
+   * incremental: avanza mientras las paginas vengan enteras de partidas nuevas
+   * y corta en la primera ya guardada. full: recorre todo el historial para
+   * renormalizar lo existente.
+   */
   mode?: IngestMode;
+  /** Tope de seguridad de paginas (tracker.gg devuelve ~5 partidas por pagina). */
   maxPages?: number;
 }
 
@@ -127,12 +132,18 @@ export function normalizeMatch(raw: TrackerMatch): CompetitiveMatch | null {
 }
 
 /**
- * Ingesta de partidas competitivas. En modo incremental cuesta un request por
- * ciclo: pide la primera pagina y corta apenas encuentra una partida guardada.
+ * Ingesta de partidas competitivas.
+ *
+ * tracker.gg devuelve ~5 partidas por pagina y exige pedir `next` para seguir.
+ * - incremental (lo que corre cada 20 s): avanza pagina por pagina MIENTRAS
+ *   todas vengan siendo nuevas, y corta en la primera partida ya guardada. Asi
+ *   un burst de partidas entre dos ciclos no deja huecos, y en el caso normal
+ *   (todo conocido en la pagina 1) cuesta un solo request.
+ * - full (?force=1): recorre el historial completo hasta que no haya `next`.
  */
 export async function ingest(deps: IngestDeps, options: IngestOptions = {}): Promise<IngestResult> {
   const mode: IngestMode = options.mode ?? 'incremental';
-  const maxPages = options.maxPages ?? (mode === 'incremental' ? 1 : 3);
+  const maxPages = options.maxPages ?? (mode === 'incremental' ? 10 : 50);
 
   let next: string | undefined;
   let pages = 0;
@@ -144,6 +155,8 @@ export async function ingest(deps: IngestDeps, options: IngestOptions = {}): Pro
   do {
     const page = await deps.client.getMatches(deps.riotId, deps.riotTag, next);
     pages++;
+
+    let foundKnown = false;
 
     for (const raw of page.data?.matches ?? []) {
       fetched++;
@@ -157,15 +170,20 @@ export async function ingest(deps: IngestDeps, options: IngestOptions = {}): Pro
         skipped++;
         continue;
       }
-      if (mode === 'incremental' && deps.store.has(match.matchId)) {
-        stoppedAtKnown = true;
-        break;
+      if (deps.store.has(match.matchId)) {
+        // En incremental, todo lo que sigue es mas viejo y ya esta guardado.
+        // En full se sigue recorriendo para renormalizar lo existente.
+        if (mode === 'incremental') {
+          foundKnown = true;
+          stoppedAtKnown = true;
+          break;
+        }
       }
 
       collected.push(match);
     }
 
-    if (stoppedAtKnown) break;
+    if (foundKnown) break;
     next = page.data?.metadata?.next;
   } while (next && pages < maxPages);
 

@@ -145,7 +145,7 @@ tracker.gg ──(curl TLS)──► src/tracker/client.ts
 ```
 
 - El **scheduler** (`src/scheduler.ts`) corre la ingesta cada 20 s por defecto, dentro del proceso del server. Vive ahí y no en la página porque OBS puede suspender el Browser Source; si el timer estuviera en el navegador, el contador se congelaría.
-- Cada ciclo pide **una sola página** y corta en la primera partida ya guardada, así el costo es 1 request cada 20 s en vez de paginar el historial completo.
+- tracker.gg devuelve **~5 partidas por página** y exige pedir el cursor `next`. El modo incremental avanza página por página **mientras vengan todas nuevas** y corta en la primera partida ya guardada: en el caso normal cuesta 1 request por ciclo, y si entre dos ciclos entró más de una página de partidas no quedan huecos. El modo completo (`?force=1`) recorre todo el historial (tope de seguridad: 50 páginas).
 - Ante `403/429/503` aplica backoff (2 min y luego 10 min) en lugar de insistir: tracker.gg responde `429` cuando se le pega seguido, comprobado con el ciclo de 20 s.
 - Los íconos salen de `public/ranks/<tier>.png` (26 archivos). Se regeneran con `npm run fetch-ranks`, que mapea por **nombre** de tier porque la API pública numera 3..27 y este proyecto normaliza 1..25.
 
@@ -161,4 +161,5 @@ npm run build       # compila a dist/ para npm start
 
 - **tracker.gg es un endpoint no oficial y frágil.** Desde IPs de datacenter suele responder `403` aun con curl-impersonate; por eso el diseño corre el scraping en tu PC y publica sólo la lectura.
 - **Empates**: se cuentan cuando tracker.gg informa un resultado `Draw`/`Tie`. Si la cuenta nunca tuvo uno, el contador queda en `0`.
-- Si borrás `data/matches.json`, la próxima ingesta incremental reconstruye sólo lo que devuelva la primera página; para el historial completo usá `POST /api/ingest?force=1`.
+- Si borrás `data/matches.json`, la ingesta incremental reconstruye hasta 10 páginas (~50 partidas) en los primeros ciclos; para el historial completo usá `POST /api/ingest?force=1` (hasta 50 páginas).
+- tracker.gg no expone historial infinito: la paginación se corta cuando la API deja de devolver `next`, no cuando el proyecto decide.
