@@ -1,0 +1,71 @@
+# Overlay de Valorant para OBS: app + tunel, todo en Docker.
+#
+#   docker compose up -d --build     # levantar / actualizar
+#   docker compose logs -f overlay   # ver la ingesta
+#   docker compose logs tunnel | Select-String trycloudflare   # URL publica
+#
+# Los puertos se publican SOLO en loopback (127.0.0.1): ni la LAN ni el router
+# los ven. El contenedor del tunel habla con la app por la red interna.
+
+services:
+  overlay:
+    build: .
+    image: valorant-obs-overlay:latest
+    container_name: valorant-overlay
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      # Dentro del contenedor hay que escuchar en todas las interfaces para que
+      # Docker pueda publicar el puerto; del lado del host queda en 127.0.0.1.
+      HOST: 0.0.0.0
+      DATA_PATH: /app/data/matches.json
+      PUBLIC_DIR: /app/public
+    ports:
+      - '127.0.0.1:4001:4001' # pagina + API publica (solo lectura)
+      - '127.0.0.1:4002:4002' # admin (token), nunca publicado por el tunel
+    volumes:
+      - overlay-data:/app/data
+    labels:
+      # Solo este contenedor lo mira autoheal.
+      autoheal: 'true'
+    logging:
+      driver: json-file
+      options:
+        max-size: '10m'
+        max-file: '3'
+
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    container_name: valorant-overlay-tunnel
+    restart: unless-stopped
+    # El tunel solo ve el listener publico, nunca el de administracion.
+    command: tunnel --no-autoupdate --url http://overlay:4001
+    depends_on:
+      overlay:
+        condition: service_healthy
+    logging:
+      driver: json-file
+      options:
+        max-size: '5m'
+        max-file: '2'
+
+  autoheal:
+    image: willfarrell/autoheal:latest
+    container_name: valorant-overlay-autoheal
+    restart: unless-stopped
+    environment:
+      # Solo reinicia contenedores con el label autoheal=true.
+      AUTOHEAL_CONTAINER_LABEL: autoheal
+      AUTOHEAL_START_PERIOD: '60'
+      AUTOHEAL_INTERVAL: '30'
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    logging:
+      driver: json-file
+      options:
+        max-size: '5m'
+        max-file: '2'
+
+volumes:
+  overlay-data:

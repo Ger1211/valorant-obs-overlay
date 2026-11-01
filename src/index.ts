@@ -16,8 +16,9 @@ function env(name: string, fallback: string): string {
   return value === undefined || value === '' ? fallback : value;
 }
 
-// Loopback fijo: ni la LAN ni el router ven estos puertos. El tunel publica PORT.
-const HOST = '127.0.0.1';
+// Loopback por defecto: fuera de Docker, ni la LAN ni el router ven estos
+// puertos. En el contenedor se pasa HOST=0.0.0.0 (ver docker-compose.yml).
+const HOST = env('HOST', '127.0.0.1');
 
 const PORT = Number(env('PORT', '4001'));
 const ADMIN_PORT = Number(env('ADMIN_PORT', '4002'));
@@ -67,12 +68,12 @@ const publicApp = createPublicApp({
 const adminApp = createAdminApp({ token: INGEST_TOKEN, runIngest });
 
 publicApp.listen(PORT, HOST, () => {
-  console.log(`Overlay (publico, solo lectura): http://${HOST}:${PORT}/`);
+  console.log(`Overlay (publico, solo lectura): http://127.0.0.1:${PORT}/`);
 });
 
 adminApp.listen(ADMIN_PORT, HOST, () => {
   const state = INGEST_TOKEN ? 'habilitada con token' : 'deshabilitada (falta INGEST_TOKEN)';
-  console.log(`Admin (local, no publicado):      http://${HOST}:${ADMIN_PORT}/api/ingest — ${state}`);
+  console.log(`Admin (local, no publicado):      http://127.0.0.1:${ADMIN_PORT}/api/ingest — ${state}`);
 });
 
 if (!hasProfile) {

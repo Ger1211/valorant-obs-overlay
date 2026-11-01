@@ -1,0 +1,12 @@
+node_modules
+dist
+data
+.git
+.github
+.env
+*.log
+tests
+scripts
+Dockerfile
+docker-compose.yml
+README.md

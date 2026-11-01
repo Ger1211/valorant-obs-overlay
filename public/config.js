@@ -8,5 +8,5 @@
 // El túnel "quick" cambia de URL cada vez que se reinicia: cuando pase, se
 // actualiza esta línea y se hace push (GitHub Pages republica solo).
 window.OVERLAY_CONFIG = {
-  api: 'https://tampa-effectively-max-deeper.trycloudflare.com',
+  api: 'https://oral-fighting-ala-glasgow.trycloudflare.com',
 };

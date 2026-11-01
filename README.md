@@ -33,7 +33,34 @@ La UI del overlay está en inglés. Los contadores son **W**ins, **L**osses y **
 - **Set completo de headers de navegador.** No alcanza con el TLS: con pocos headers tracker.gg responde `403` igual. El cliente manda `User-Agent`, `Accept`, `Accept-Language`, `Referer` y `Origin` de un XHR real (`src/tracker/client.ts`).
 - La cuenta de Valorant debe tener las **stats públicas** (en el juego: Ajustes → General → desactivar "Ocultar historial de partidas").
 
-## Levantarlo
+## Correr todo en Docker (recomendado)
+
+```bash
+docker compose up -d --build
+```
+
+Levanta tres contenedores:
+
+| Contenedor | Qué hace |
+| --- | --- |
+| `valorant-overlay` | La app: ingesta cada 60 s, página y API. Tiene `healthcheck`. |
+| `valorant-overlay-tunnel` | Publica la app en internet (cloudflared, por red interna). |
+| `valorant-overlay-autoheal` | Reinicia `valorant-overlay` si queda **colgado** (vivo pero sin responder), no sólo si muere. |
+
+- `restart: unless-stopped` en los tres: vuelven solos si el proceso muere, si Docker se reinicia o si reiniciás la PC.
+- Los puertos se publican **sólo en `127.0.0.1`**: ni la LAN ni el router los ven.
+- Los datos viven en el volumen `overlay-data` (un rebuild no borra las partidas).
+- URL del túnel: `docker compose logs tunnel | Select-String trycloudflare`.
+- Seguimiento: `docker compose logs -f overlay` / `docker compose ps`.
+
+Para que arranque solo al prender la PC:
+
+1. Docker Desktop → **Settings → General → "Start Docker Desktop when you sign in"**.
+2. Plan de energía sin suspensión: si Windows duerme, el contenedor no scrapea y los datos se congelan.
+
+Después de un `docker compose up` nuevo el quick tunnel cambia de URL: actualizá `public/config.js` y hacé push (OBS no se entera, usa `localhost`).
+
+## Levantarlo sin Docker (desarrollo)
 
 ```bash
 npm install
