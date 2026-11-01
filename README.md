@@ -4,6 +4,10 @@ Overlay compacto para OBS (fuente **navegador**) con el **rango competitivo actu
 
 Pensado para mostrar el progreso en stream sin ocupar la pantalla: una tarjeta de ~300×88 px con fondo transparente.
 
+- **Repo**: <https://github.com/Ger1211/valorant-obs-overlay>
+- **Página pública**: <https://ger1211.github.io/valorant-obs-overlay/> (necesita `?api=<url-del-túnel>` para ver datos en vivo)
+
+
 ```
 ┌──────────────────────────────┐
 │  [icono]  Platinum 3   3 W  2 L  1 D │
